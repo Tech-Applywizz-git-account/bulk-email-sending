@@ -471,30 +471,36 @@ def delete_log(filename):
 
 @app.route('/view/<filename>')
 def view_file(filename):
-    """View uploaded file - downloads from Supabase if not in local cache"""
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    
-    # Try to download from Supabase if not in local cache
-    if not os.path.exists(filepath) and sb.is_supabase_enabled():
+    """View uploaded file - Uses Supabase Signed URL if possible"""
+    # 1. Try to get a signed URL from Supabase first (best for Vercel)
+    if sb.is_supabase_enabled():
         try:
             db_file = sb.get_file_by_filename(filename)
             if db_file:
                 storage_path = db_file.get('file_path')
-                if sb.download_file_from_storage(storage_path, filepath):
-                    print(f" Downloaded {filename} from Supabase for viewing")
-                else:
-                    flash('Error downloading file from storage', 'error')
-                    return redirect(url_for('index'))
-            else:
-                flash('File not found in database', 'error')
-                return redirect(url_for('index'))
+                if storage_path and not storage_path.startswith('local://'):
+                    # Get a temporary signed URL (valid for 1 hour)
+                    signed_url = sb.get_file_download_url(storage_path)
+                    if signed_url:
+                        # If we have a signed URL, we can redirect or parse from URL
+                        # For simplicity, we'll still try to parse it locally if possible,
+                        # but we'll download it to /tmp first
+                        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                        if not os.path.exists(filepath):
+                            sb.download_file_from_storage(storage_path, filepath)
+                        
+                        if os.path.exists(filepath):
+                            data = parse_excel(filepath)
+                            return render_template('view.html', filename=filename, emails=data)
+            
+            print(f"DEBUG: Falling back to local check for {filename}")
         except Exception as e:
-            print(f"ERROR: Error downloading file: {e}")
-            flash('Error accessing file', 'error')
-            return redirect(url_for('index'))
-    
+            print(f"ERROR: Supabase view error: {e}")
+
+    # 2. Fallback to local filesystem
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     if not os.path.exists(filepath):
-        flash('File not found', 'error')
+        flash('File could not be retrieved from cloud or local storage.', 'error')
         return redirect(url_for('index'))
         
     data = parse_excel(filepath)
@@ -611,13 +617,14 @@ def send_emails(filename):
             db_file = sb.get_file_by_filename(filename)
             if db_file:
                 storage_path = db_file.get('file_path')
-                sb.download_file_from_storage(storage_path, filepath)
-                print(f" Downloaded file from Supabase: {filename}")
+                if storage_path and not storage_path.startswith('local://'):
+                    if sb.download_file_from_storage(storage_path, filepath):
+                        print(f" Downloaded file from Supabase for sending: {filename}")
         except Exception as e:
             print(f"WARNING: Could not download from Supabase: {e}")
     
     if not os.path.exists(filepath):
-        flash("File not found for sending", 'error')
+        flash(f"Error: File '{filename}' could not be loaded for sending. Please re-upload.", 'error')
         return redirect(url_for('index'))
         
     email_data = parse_excel(filepath)
