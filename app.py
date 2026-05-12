@@ -32,9 +32,9 @@ print("="*60)
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "super_secret_key_for_dev") # Needed for flash messages
 
-# Use permanent local directories inside the project folder
-# This ensures files survive server restarts and are always available
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Determine storage path (use /tmp for Vercel/Serverless)
+IS_VERCEL = os.environ.get('VERCEL') == '1'
+BASE_DIR = '/tmp' if IS_VERCEL else os.path.dirname(os.path.abspath(__file__))
 
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 LOGS_FOLDER = os.path.join(BASE_DIR, 'logs')
