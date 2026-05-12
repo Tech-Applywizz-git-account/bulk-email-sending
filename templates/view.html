@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}View File - {{ filename }}{% endblock %}
+{% block header %}File Preview{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1rem;">
+    <a href="{{ url_for('index') }}" class="btn btn-outline btn-sm">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex items-center gap-2">
+            <h3 class="card-title">Checking File: {{ filename }}</h3>
+            <span class="badge badge-neutral">{{ emails|length }} Recipients</span>
+        </div>
+        <div class="d-flex items-center gap-2">
+            <!-- <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add Row
+            </button> -->
+            <button class="btn btn-danger btn-sm" id="btn-delete-selected" style="display: none;"
+                onclick="deleteSelectedRows('{{ filename }}')">
+                <i class="fas fa-trash"></i> Delete Selected
+            </button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table" id="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="select-all"></th>
+                    <th class="sortable" data-sort="name">Name <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="email">Email <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="subject">Subject <i class="fas fa-sort"></i></th>
+                    <th class="sortable" data-sort="body">Email Body <i class="fas fa-sort"></i></th>
+                    <!-- <th>Actions</th> -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for email in emails %}
+                <tr data-id="{{ loop.index0 }}">
+                    <td><input type="checkbox" class="row-checkbox" value="{{ loop.index0 }}"></td>
+                    <td class="col-name">{{ email.name }}</td>
+                    <td class="col-email"><a href="mailto:{{ email.email }}"
+                            style="color: var(--primary-color); text-decoration: none;">{{ email.email }}</a></td>
+                    <td class="col-subject">{{ email.subject }}</td>
+                    <td class="col-body">
+                        <div style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            {{ email.body }}</div>
+                    </td>
+                    <!-- <td>
+                        <button class="btn btn-outline btn-sm" onclick="openEditModal({{ loop.index0 }}, this)">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                    </td> -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div id="add-modal" class="modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="width: 500px; max-width: 90%; background: white;">
+        <div class="card-header">
+            <h3 class="card-title">Add New Recipient</h3>
+            <button class="btn btn-outline" onclick="closeAddModal()" style="border: none;"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <form action="/files/{{ filename }}/add" method="POST">
+            <div class="form-group">
+                <label class="text-sm font-medium">Name</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="text-sm font-medium">Email</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="text-sm font-medium">Subject</label>
+                <input type="text" name="subject" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="text-sm font-medium">Email Body</label>
+                <textarea name="body" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="d-flex justify-between mt-4">
+                <button type="button" class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Recipient</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="edit-modal" class="modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div class="card" style="width: 500px; max-width: 90%; background: white;">
+        <div class="card-header">
+            <h3 class="card-title">Edit Recipient</h3>
+            <button class="btn btn-outline" onclick="closeEditModal()" style="border: none;"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <form action="/files/{{ filename }}/edit" method="POST" id="edit-form">
+            <input type="hidden" name="row_id" id="edit-row-id">
+            <div class="form-group">
+                <label class="text-sm font-medium">Name</label>
+                <input type="text" name="name" id="edit-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="text-sm font-medium">Email</label>
+                <input type="email" name="email" id="edit-email" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="text-sm font-medium">Subject</label>
+                <input type="text" name="subject" id="edit-subject" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="text-sm font-medium">Email Body</label>
+                <textarea name="body" id="edit-body" class="form-control" rows="4" required></textarea>
+            </div>
+            <div class="d-flex justify-between mt-4">
+                <button type="button" class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Actions</h3>
+    </div>
+    <div style="padding: 1rem; background: #f8fafc; border-radius: 8px;">
+        <p style="margin-bottom: 1rem;">Ready to send emails? This action cannot be undone.</p>
+        <form action="/send-emails/{{ filename }}" method="POST"
+            onsubmit="return confirm('Are you sure you want to send {{ emails|length }} emails?');">
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">
+                <i class="fas fa-paper-plane"></i> Send All Emails
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

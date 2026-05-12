@@ -1,0 +1,8 @@
+Flask
+pandas
+openpyxl
+python-dotenv
+msal
+requests
+gunicorn
+supabase

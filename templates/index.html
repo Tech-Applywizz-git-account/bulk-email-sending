@@ -1,0 +1,96 @@
+<!-- index.html -->
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Email Sender{% endblock %}
+{% block header %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Upload New List</h3>
+    </div>
+    <form action="/upload" method="POST" enctype="multipart/form-data" id="upload-form">
+        <div class="upload-zone">
+            <input type="file" name="file" class="file-input" accept=".xlsx, .xls" required>
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p style="font-size: 1.1rem; font-weight: 500; color: var(--text-primary);">
+                Drag & Drop Excel File Here
+            </p>
+            <p class="text-muted text-sm">or click to browse</p>
+            <div id="file-info"></div>
+        </div>
+        <div id="upload-btn-container" style="text-align: center; margin-top: 1.5rem; display: none;">
+            <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
+                <i class="fas fa-upload"></i> Upload File to send emails
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Uploaded Files</h3>
+        <span class="badge badge-neutral">{{ files|length }} Files</span>
+    </div>
+
+    {% if files %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Uploaded Date</th>
+                    <th style="text-align: right;">Actions</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>
+                        <div class="d-flex items-center gap-2">
+                            <div
+                                style="width: 40px; height: 40px; background: #e0f2f1; color: #00695c; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-file-excel"></i>
+                            </div>
+                            <span style="font-weight: 500;">{{ file.name }}</span>
+                        </div>
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 0.875rem;">
+                        {{ file.date }}
+                    </td>
+
+                    <td style="text-align: right;">
+                        <a href="/view/{{ file.name }}" class="btn btn-primary btn-sm"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i> View & Send
+                        </a>
+                        <a href="/files/{{ file.name }}" target="_blank" class="btn btn-outline btn-sm"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            <i class="fas fa-download"></i>
+                        </a>
+                        <form action="/delete/upload/{{ file.name }}" method="POST"
+                            onsubmit="return confirm('Delete this file?');" style="display:inline;">
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 2rem;">
+        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-state-2130362-1800926.png" alt="No data"
+            style="width: 200px; opacity: 0.5;">
+        <p class="text-muted">No files uploaded yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Email Sender Dashboard{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-paper-plane" style="margin-right: 10px;"></i>
+            <span>Email Sender</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('index') }}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('list_logs') }}" class="nav-link {% if 'logs' in request.path %}active{% endif %}">
+                <i class="fas fa-history"></i>
+                <span>View Sent Logs</span>
+            </a>
+            <!-- Placeholder for future links -->
+            <!-- <a href="#" class="nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a> -->
+        </nav>
+        <div style="padding: 1.5rem; border-top: 1px solid var(--border-color);">
+            <div class="d-flex items-center gap-2">
+                <div
+                    style="width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-user text-muted"></i>
+                </div>
+                <div>
+                    <div style="font-size: 0.875rem; font-weight: 500;">User</div>
+                    <div style="font-size: 0.75rem;" class="text-muted">Admin</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="d-flex items-center gap-2">
+                <button id="menu-toggle" class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 class="header-title">{% block header %}{% endblock %}</h2>
+            </div>
+
+            <div class="d-flex items-center gap-2">
+                <button class="btn btn-outline" style="border:none;">
+                    <i class="fas fa-bell"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Toast Container -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="toast-container">
+            {% for category, message in messages %}
+            <div class="toast toast-{{ category }}">
+                {% if category == 'success' %}
+                <i class="fas fa-check-circle" style="color: var(--success-color)"></i>
+                {% elif category == 'error' %}
+                <i class="fas fa-exclamation-circle" style="color: var(--danger-color)"></i>
+                {% elif category == 'warning' %}
+                <i class="fas fa-exclamation-triangle" style="color: #f59e0b"></i>
+                {% else %}
+                <i class="fas fa-info-circle" style="color: var(--primary-color)"></i>
+                {% endif %}
+                <div class="toast-content">{{ message }}</div>
+                <button class="toast-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Content Page -->
+        <div class="content-wrapper">
+
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

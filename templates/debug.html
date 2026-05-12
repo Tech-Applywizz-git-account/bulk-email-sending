@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostics - Email Marketing App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            font-size: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #ddd;
+        }
+
+        .status-item.success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .status-item.error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .status-item.warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .status-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            min-width: 30px;
+        }
+
+        .status-content {
+            flex: 1;
+        }
+
+        .status-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .status-value {
+            color: #666;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .overall-status {
+            text-align: center;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .overall-status.healthy {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .overall-status.unhealthy {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .overall-status h2 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            border: none;
+            color: white;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+        }
+
+        .error-details {
+            background: #fff;
+            border: 1px solid #dc3545;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 System Diagnostics</h1>
+            <p>Real-time configuration and connection status</p>
+        </div>
+
+        <div class="overall-status {% if overall_healthy %}healthy{% else %}unhealthy{% endif %}">
+            <h2>{% if overall_healthy %}✅ System Healthy{% else %}❌ Issues Detected{% endif %}</h2>
+            <p>{{ issues_count }} issue(s) found</p>
+        </div>
+
+        <!-- Environment Variables -->
+        <div class="section">
+            <h2>🔧 Environment Variables</h2>
+
+            <div class="status-item {% if env_vars.SECRET_KEY %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if env_vars.SECRET_KEY %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">SECRET_KEY</div>
+                    <div class="status-value">{% if env_vars.SECRET_KEY %}Configured ({{ env_vars.SECRET_KEY_length }}
+                        chars){% else %}MISSING{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="status-item {% if env_vars.TENANT_ID %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if env_vars.TENANT_ID %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">TENANT_ID (Azure AD)</div>
+                    <div class="status-value">{% if env_vars.TENANT_ID %}{{ env_vars.TENANT_ID }}{% else %}MISSING{%
+                        endif %}</div>
+                </div>
+            </div>
+
+            <div class="status-item {% if env_vars.CLIENT_ID %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if env_vars.CLIENT_ID %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">CLIENT_ID (Azure AD)</div>
+                    <div class="status-value">{% if env_vars.CLIENT_ID %}{{ env_vars.CLIENT_ID }}{% else %}MISSING{%
+                        endif %}</div>
+                </div>
+            </div>
+
+            <div class="status-item {% if env_vars.CLIENT_SECRET %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if env_vars.CLIENT_SECRET %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">CLIENT_SECRET (Azure AD)</div>
+                    <div class="status-value">{% if env_vars.CLIENT_SECRET %}********** (Hidden for security){% else
+                        %}MISSING{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="status-item {% if env_vars.SENDER_EMAIL %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if env_vars.SENDER_EMAIL %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">SENDER_EMAIL</div>
+                    <div class="status-value">{% if env_vars.SENDER_EMAIL %}{{ env_vars.SENDER_EMAIL }}{% else
+                        %}MISSING{% endif %}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Supabase Configuration -->
+        <div class="section">
+            <h2>🗄️ Supabase Configuration</h2>
+
+            <div class="status-item {% if env_vars.SUPABASE_URL %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if env_vars.SUPABASE_URL %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">SUPABASE_URL</div>
+                    <div class="status-value">{% if env_vars.SUPABASE_URL %}{{ env_vars.SUPABASE_URL }}{% else
+                        %}MISSING{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="status-item {% if env_vars.SUPABASE_SERVICE_KEY %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if env_vars.SUPABASE_SERVICE_KEY %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">SUPABASE_SERVICE_KEY</div>
+                    <div class="status-value">{% if env_vars.SUPABASE_SERVICE_KEY %}Configured ({{
+                        env_vars.SUPABASE_SERVICE_KEY_length }} chars, starts with: {{
+                        env_vars.SUPABASE_SERVICE_KEY_start }}){% else %}MISSING - Check variable name is exactly
+                        "SUPABASE_SERVICE_KEY"{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="status-item {% if env_vars.SUPABASE_BUCKET_NAME %}success{% else %}warning{% endif %}">
+                <div class="status-icon">{% if env_vars.SUPABASE_BUCKET_NAME %}✅{% else %}⚠️{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">SUPABASE_BUCKET_NAME</div>
+                    <div class="status-value">{{ env_vars.SUPABASE_BUCKET_NAME }}</div>
+                </div>
+            </div>
+
+            <div class="status-item {% if supabase_status.enabled %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if supabase_status.enabled %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">Supabase Client Connection</div>
+                    <div class="status-value">{% if supabase_status.enabled %}Connected successfully{% else %}NOT
+                        CONNECTED{% endif %}</div>
+                    {% if supabase_status.error %}
+                    <div class="error-details">{{ supabase_status.error }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if supabase_status.enabled %}
+            <div class="status-item {% if supabase_status.can_read %}success{% else %}error{% endif %}">
+                <div class="status-icon">{% if supabase_status.can_read %}✅{% else %}❌{% endif %}</div>
+                <div class="status-content">
+                    <div class="status-label">Database READ Access Test</div>
+                    <div class="status-value">
+                        {% if supabase_status.can_read %}
+                        ✅ READ works - Found {{ supabase_status.file_count }} files in database
+                        {% else %}
+                        ❌ CANNOT READ from database - This explains why files show as "not found"!
+                        {% endif %}
+                    </div>
+                    {% if supabase_status.test_details %}
+                    <div class="status-value" style="margin-top: 8px;">
+                        {% for detail in supabase_status.test_details %}
+                        <div>{{ detail }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Database Access Issue Alert -->
+        {% if supabase_status.enabled and not supabase_status.can_read %}
+        <div class="section" style="border: 3px solid #dc3545;">
+            <h2>🚨 ROOT CAUSE IDENTIFIED</h2>
+
+            <div class="status-item error">
+                <div class="status-icon">🎯</div>
+                <div class="status-content">
+                    <div class="status-label">Files are being INSERTED but cannot be READ</div>
+                    <div class="status-value">
+                        Your application can WRITE to the database (insert files successfully)
+                        but CANNOT READ from the database (retrieve files). This is why you see
+                        "File not found in database" even though the files are there!
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-item warning">
+                <div class="status-icon">⚠️</div>
+                <div class="status-content">
+                    <div class="status-label">Most Likely Cause: Row Level Security (RLS) Policies</div>
+                    <div class="status-value">
+                        1. Go to Supabase Dashboard → Authentication → Policies<br>
+                        2. Find the "uploaded_files" table<br>
+                        3. Check if SELECT policy is enabled for service_role<br>
+                        4. Or DISABLE RLS for this table (Settings → Tables → uploaded_files → Disable RLS)
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-item warning">
+                <div class="status-icon">💡</div>
+                <div class="status-content">
+                    <div class="status-label">Quick Fix</div>
+                    <div class="status-value">
+                        Run these SQL commands in Supabase SQL Editor:<br><br>
+                        -- Disable RLS for uploaded_files table<br>
+                        ALTER TABLE uploaded_files DISABLE ROW LEVEL SECURITY;<br><br>
+                        -- Disable RLS for email_logs table<br>
+                        ALTER TABLE email_logs DISABLE ROW LEVEL SECURITY;<br><br>
+                        -- Disable RLS for upload_logs table<br>
+                        ALTER TABLE upload_logs DISABLE ROW LEVEL SECURITY;
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- System Information -->
+        <div class="section">
+            <h2>💻 System Information</h2>
+
+            <div class="status-item success">
+                <div class="status-icon">ℹ️</div>
+                <div class="status-content">
+                    <div class="status-label">Python Version</div>
+                    <div class="status-value">{{ system_info.python_version }}</div>
+                </div>
+            </div>
+
+            <div class="status-item success">
+                <div class="status-icon">ℹ️</div>
+                <div class="status-content">
+                    <div class="status-label">Deployment Platform</div>
+                    <div class="status-value">{{ system_info.platform }}</div>
+                </div>
+            </div>
+
+            <div class="status-item success">
+                <div class="status-icon">ℹ️</div>
+                <div class="status-content">
+                    <div class="status-label">Current Time (Server)</div>
+                    <div class="status-value">{{ system_info.current_time }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recommendations -->
+        {% if issues_count > 0 %}
+        <div class="section">
+            <h2>💡 Recommendations</h2>
+
+            {% if not env_vars.SUPABASE_SERVICE_KEY %}
+            <div class="status-item error">
+                <div class="status-icon">🔴</div>
+                <div class="status-content">
+                    <div class="status-label">Critical: SUPABASE_SERVICE_KEY Missing</div>
+                    <div class="status-value">Go to Vercel → Settings → Environment Variables → Add variable named
+                        exactly "SUPABASE_SERVICE_KEY" (not SUPABASE_KEY or SUPABASE_SUPPORT_KEY)</div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if not env_vars.TENANT_ID or not env_vars.CLIENT_ID or not env_vars.CLIENT_SECRET %}
+            <div class="status-item error">
+                <div class="status-icon">🔴</div>
+                <div class="status-content">
+                    <div class="status-label">Critical: Azure AD Credentials Missing</div>
+                    <div class="status-value">Add TENANT_ID, CLIENT_ID, and CLIENT_SECRET in Vercel environment
+                        variables</div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="status-item warning">
+                <div class="status-icon">⚠️</div>
+                <div class="status-content">
+                    <div class="status-label">After updating environment variables</div>
+                    <div class="status-value">You MUST redeploy your application in Vercel for changes to take effect
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="text-align: center;">
+            <a href="/" class="btn">← Back to Main App</a>
+            <a href="/debug" class="btn" style="background: #28a745;">🔄 Refresh Status</a>
+        </div>
+    </div>
+
+    <script>
+        // Log all diagnostic information to browser console
+        console.log('%c==========================================================', 'color: #667eea; font-weight: bold; font-size: 16px;');
+        console.log('%c🔍 SYSTEM DIAGNOSTICS - DETAILED REPORT', 'color: #667eea; font-weight: bold; font-size: 16px;');
+        console.log('%c==========================================================', 'color: #667eea; font-weight: bold; font-size: 16px;');
+
+        // Overall Status
+        console.log('\n%c📊 OVERALL STATUS', 'color: #333; font-weight: bold; font-size: 14px;');
+        console.log('Overall Healthy:', {{ 'true' if overall_healthy else 'false' }});
+        console.log('Issues Count:', {{ issues_count }});
+
+        // Environment Variables
+        console.log('\n%c🔧 ENVIRONMENT VARIABLES', 'color: #333; font-weight: bold; font-size: 14px;');
+        console.log('SECRET_KEY:', {{ 'true' if env_vars.SECRET_KEY else 'false' }}, '({{ env_vars.SECRET_KEY_length }} chars)');
+        console.log('TENANT_ID:', '{{ env_vars.TENANT_ID if env_vars.TENANT_ID else "MISSING" }}');
+        console.log('CLIENT_ID:', '{{ env_vars.CLIENT_ID if env_vars.CLIENT_ID else "MISSING" }}');
+        console.log('CLIENT_SECRET:', {{ 'true' if env_vars.CLIENT_SECRET else 'false' }});
+        console.log('SENDER_EMAIL:', '{{ env_vars.SENDER_EMAIL if env_vars.SENDER_EMAIL else "MISSING" }}');
+        console.log('SUPABASE_URL:', '{{ env_vars.SUPABASE_URL if env_vars.SUPABASE_URL else "MISSING" }}');
+        console.log('SUPABASE_SERVICE_KEY:', {{ 'true' if env_vars.SUPABASE_SERVICE_KEY else 'false' }}, '({{ env_vars.SUPABASE_SERVICE_KEY_length }} chars, starts: {{ env_vars.SUPABASE_SERVICE_KEY_start }})');
+        console.log('SUPABASE_BUCKET_NAME:', '{{ env_vars.SUPABASE_BUCKET_NAME }}');
+
+        // Supabase Status
+        console.log('\n%c🗄️ SUPABASE CONNECTION STATUS', 'color: #333; font-weight: bold; font-size: 14px;');
+        console.log('Client Enabled:', {{ 'true' if supabase_status.enabled else 'false' }});
+        console.log('Can Read:', {{ 'true' if supabase_status.can_read else 'false' }});
+        console.log('File Count:', {{ supabase_status.file_count }});
+        {% if supabase_status.error %}
+        console.error('Error:', '{{ supabase_status.error }}');
+        {% endif %}
+        {% if supabase_status.test_details %}
+        console.log('Test Details:');
+        {% for detail in supabase_status.test_details %}
+        console.log('  - {{ detail }}');
+        {% endfor %}
+        {% endif %}
+
+        // System Information
+        console.log('\n%c💻 SYSTEM INFORMATION', 'color: #333; font-weight: bold; font-size: 14px;');
+        console.log('Python Version:', '{{ system_info.python_version }}');
+        console.log('Platform:', '{{ system_info.platform }}');
+        console.log('Current Time:', '{{ system_info.current_time }}');
+
+        // Critical Issues Highlight
+        {% if not supabase_status.can_read and supabase_status.enabled %}
+        console.log('\n%c🚨 CRITICAL ISSUE DETECTED!', 'color: #dc3545; font-weight: bold; font-size: 16px; background: #f8d7da; padding: 5px;');
+        console.error('Files can be WRITTEN to database but CANNOT be READ!');
+        console.error('This is why you see "File not found in database" errors.');
+        console.log('\n%c💡 SOLUTION:', 'color: #ffc107; font-weight: bold; font-size: 14px;');
+        console.log('Run these SQL commands in Supabase SQL Editor:');
+        console.log('ALTER TABLE uploaded_files DISABLE ROW LEVEL SECURITY;');
+        console.log('ALTER TABLE email_logs DISABLE ROW LEVEL SECURITY;');
+        console.log('ALTER TABLE upload_logs DISABLE ROW LEVEL SECURITY;');
+        {% endif %}
+
+        {% if not env_vars.SUPABASE_SERVICE_KEY %}
+        console.log('\n%c🔴 CRITICAL: SUPABASE_SERVICE_KEY Missing!', 'color: #dc3545; font-weight: bold; font-size: 14px; background: #f8d7da; padding: 5px;');
+        console.error('Variable name must be exactly "SUPABASE_SERVICE_KEY"');
+        console.error('Not "SUPABASE_KEY" or "SUPABASE_SUPPORT_KEY"');
+        {% endif %}
+
+        console.log('\n%c==========================================================', 'color: #667eea; font-weight: bold; font-size: 16px;');
+        console.log('%cPress F12 (or right-click → Inspect → Console) to see this output', 'color: #666; font-style: italic;');
+        console.log('%c==========================================================', 'color: #667eea; font-weight: bold; font-size: 16px;');
+
+        // Also show a prominent message visible on the page
+        console.log('\n%c👆 Check the console output above for detailed diagnostic information', 'color: #28a745; font-weight: bold; font-size: 14px;');
+    </script>
+</body>
+
+</html>

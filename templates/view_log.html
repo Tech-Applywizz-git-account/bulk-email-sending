@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}View Log - {{ filename }}{% endblock %}
+{% block header %}Log Details{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1rem;">
+    <a href="{{ url_for('list_logs') }}" class="btn btn-outline btn-sm">
+        <i class="fas fa-arrow-left"></i> Back to Logs
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Log: {{ filename }}</h3>
+        <div class="d-flex gap-2">
+            <input type="text" id="table-search" class="form-control" placeholder="Search log entries..."
+                style="width: 250px;">
+            <a href="/logs/download_failed/{{ batch_id }}" class="btn btn-danger btn-sm">
+                <i class="fas fa-exclamation-triangle"></i> Download Failed Records
+            </a>
+        </div>
+    </div>
+
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    {% if logs and logs|length > 0 %}
+                        {% for key in logs[0].keys() %}
+                        <th>{{ key }}</th>
+                        {% endfor %}
+                    {% else %}
+                        <th>Timestamp</th>
+                        <th>Recipient Name</th>
+                        <th>Recipient Email</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in logs %}
+                <tr>
+                    {% for key, value in row.items() %}
+                    <td>
+                        {% if key == 'Status' %}
+                        {% if value == 'Success' %}
+                        <span class="badge badge-success">Success</span>
+                        {% elif value == 'Failed' %}
+                        <span class="badge badge-danger">Failed</span>
+                        {% else %}
+                        <span class="badge badge-neutral">{{ value }}</span>
+                        {% endif %}
+                        {% else %}
+                        {{ value }}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

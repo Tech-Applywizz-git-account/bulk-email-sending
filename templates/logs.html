@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Sent Logs - Email Sender{% endblock %}
+{% block header %}Sent Logs{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Email Sending History</h3>
+        <div class="d-flex gap-2">
+            <input type="text" id="table-search" class="form-control" placeholder="Search logs..."
+                style="width: 250px;">
+        </div>
+    </div>
+
+    {% if files %}
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Source File</th>
+                    <th>Date Sent</th>
+                    <th>Emails Sent</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for batch in files %}
+                <tr>
+                    <td>
+                        <div class="d-flex items-center gap-2">
+                            <div
+                                style="width: 32px; height: 32px; background: #eff6ff; color: #1d4ed8; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <span style="font-weight: 500;">{{ batch.filename or 'Unknown' }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="text-muted">{{ batch.date }}</span>
+                    </td>
+                    <td>
+                        <span class="badge"
+                            style="background: #dbeafe; color: #1e40af; padding: 0.25rem 0.75rem; border-radius: 12px; font-weight: 500;">
+                            {{ batch.count }} emails
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a href="/logs/view/{{ batch.batch_id }}" class="btn btn-outline btn-sm"
+                            style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 2rem;">
+        <p class="text-muted">No email logs found. Send some emails to see logs here!</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Search functionality
+    document.getElementById('table-search').addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}
