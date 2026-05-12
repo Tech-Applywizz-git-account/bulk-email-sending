@@ -42,18 +42,16 @@ UPLOAD_JSON_FOLDER = os.path.join(BASE_DIR, 'json_uploads')
 LOGS_JSON_FOLDER = os.path.join(BASE_DIR, 'json_logs')
 DEBUG_LOG_PATH = os.path.join(BASE_DIR, 'upload_debug.log')
 
+# Ensure directories exist
+for folder in [UPLOAD_FOLDER, LOGS_FOLDER, UPLOAD_JSON_FOLDER, LOGS_JSON_FOLDER]:
+    os.makedirs(folder, exist_ok=True)
+
 print(f"Using Storage Path: {BASE_DIR}")
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['LOGS_FOLDER'] = LOGS_FOLDER
 app.config['UPLOAD_JSON_FOLDER'] = UPLOAD_JSON_FOLDER
 app.config['LOGS_JSON_FOLDER'] = LOGS_JSON_FOLDER
-
-# Ensure directories exist
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(LOGS_FOLDER, exist_ok=True)
-os.makedirs(UPLOAD_JSON_FOLDER, exist_ok=True)
-os.makedirs(LOGS_JSON_FOLDER, exist_ok=True)
 
 
 

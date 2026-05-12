@@ -149,7 +149,17 @@ def download_file_from_storage(storage_path: str, local_filepath: str) -> bool:
         return True
         
     except Exception as e:
-        print(f"ERROR: Error downloading from Supabase Storage: {e}")
+        error_msg = f"ERROR: Error downloading from Supabase Storage: {e}"
+        print(error_msg)
+        try:
+            # Determine debug log path dynamically
+            IS_VERCEL = os.environ.get('VERCEL') == '1'
+            BASE_DIR = '/tmp' if IS_VERCEL else os.path.dirname(os.path.abspath(__file__))
+            debug_path = os.path.join(BASE_DIR, 'upload_debug.log')
+            with open(debug_path, "a") as logf:
+                logf.write(f"DEBUG: DOWNLOAD EXCEPTION: {error_msg} (Path: {storage_path})\n")
+        except:
+            pass
         return False
 
 
