@@ -40,6 +40,7 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 LOGS_FOLDER = os.path.join(BASE_DIR, 'logs')
 UPLOAD_JSON_FOLDER = os.path.join(BASE_DIR, 'json_uploads')
 LOGS_JSON_FOLDER = os.path.join(BASE_DIR, 'json_logs')
+DEBUG_LOG_PATH = os.path.join(BASE_DIR, 'upload_debug.log')
 
 print(f"Using Storage Path: {BASE_DIR}")
 
@@ -310,13 +311,13 @@ def upload_file():
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
             file.save(filepath)
             file_size = os.path.getsize(filepath)
-            with open("upload_debug.log", "a") as logf:
+            with open(DEBUG_LOG_PATH, "a") as logf:
                 logf.write(f"\n--- UPLOAD START: {file.filename} ---\n")
                 logf.write(f"DEBUG: File saved locally to {filepath} (Size: {file_size} bytes)\n")
             
             # Parse Excel data
             data = parse_excel(filepath)
-            with open("upload_debug.log", "a") as logf:
+            with open(DEBUG_LOG_PATH, "a") as logf:
                 logf.write(f"DEBUG: Excel parsed, rows found: {len(data)}\n")
             
             # Convert to JSON and store locally
@@ -325,31 +326,31 @@ def upload_file():
                 json_filepath = os.path.join(app.config['UPLOAD_JSON_FOLDER'], json_filename)
                 with open(json_filepath, 'w') as f:
                     json.dump(data, f, indent=4)
-                with open("upload_debug.log", "a") as logf:
+                with open(DEBUG_LOG_PATH, "a") as logf:
                     logf.write(f"DEBUG: JSON saved to {json_filepath}\n")
             except Exception as json_e:
-                with open("upload_debug.log", "a") as logf:
+                with open(DEBUG_LOG_PATH, "a") as logf:
                     logf.write(f"DEBUG: Error saving JSON: {json_e}\n")
 
             # Upload to Supabase Storage and Database
-            with open("upload_debug.log", "a") as logf:
+            with open(DEBUG_LOG_PATH, "a") as logf:
                 logf.write(f"DEBUG: Starting Supabase sync...\n")
                 logf.write(f"DEBUG: Supabase enabled check: {sb.is_supabase_enabled()}\n")
             
             if sb.is_supabase_enabled():
                 try:
-                    with open("upload_debug.log", "a") as logf:
+                    with open(DEBUG_LOG_PATH, "a") as logf:
                         logf.write(f"DEBUG: Attempting storage upload for {file.filename}...\n")
                     storage_path = sb.upload_file_to_storage(filepath, file.filename)
-                    with open("upload_debug.log", "a") as logf:
+                    with open(DEBUG_LOG_PATH, "a") as logf:
                         logf.write(f"DEBUG: Storage path result: {storage_path}\n")
                     
                     if not storage_path:
-                        with open("upload_debug.log", "a") as logf:
+                        with open(DEBUG_LOG_PATH, "a") as logf:
                             logf.write("DEBUG: WARNING: Storage upload failed, but proceeding with database record insertion using local path.\n")
                         storage_path = f"local://{file.filename}"
                     
-                    with open("upload_debug.log", "a") as logf:
+                    with open(DEBUG_LOG_PATH, "a") as logf:
                         logf.write(f"DEBUG: Attempting database record insertion with path: {storage_path}...\n")
                     
                     file_id = sb.insert_uploaded_file(
@@ -359,7 +360,7 @@ def upload_file():
                         file_size=file_size,
                         metadata={'emails': data}
                     )
-                    with open("upload_debug.log", "a") as logf:
+                    with open(DEBUG_LOG_PATH, "a") as logf:
                         logf.write(f"DEBUG: Database file_id result: {file_id}\n")
                     
                     if file_id:
@@ -370,21 +371,21 @@ def upload_file():
                             details=f"Uploaded {file.filename}",
                             ip_address=request.remote_addr or ""
                         )
-                        with open("upload_debug.log", "a") as logf:
+                        with open(DEBUG_LOG_PATH, "a") as logf:
                             logf.write(f"DEBUG: SUCCESS: Sync complete for {file.filename}\n")
                     else:
-                        with open("upload_debug.log", "a") as logf:
+                        with open(DEBUG_LOG_PATH, "a") as logf:
                             logf.write("DEBUG: ERROR: Database insertion failed (returned None)\n")
                 except Exception as sb_e:
-                    with open("upload_debug.log", "a") as logf:
+                    with open(DEBUG_LOG_PATH, "a") as logf:
                         logf.write(f"DEBUG: EXCEPTION during Supabase sync: {sb_e}\n")
             else:
-                with open("upload_debug.log", "a") as logf:
+                with open(DEBUG_LOG_PATH, "a") as logf:
                     logf.write("DEBUG: Supabase not enabled/reachable, skipping sync.\n")
 
             flash(f'File "{file.filename}" uploaded successfully!', 'success')
         except Exception as e:
-            with open("upload_debug.log", "a") as logf:
+            with open(DEBUG_LOG_PATH, "a") as logf:
                 logf.write(f"DEBUG: CRITICAL ERROR in upload_file: {e}\n")
             flash(f'Error saving file: {str(e)}', 'error')
         return redirect(url_for('index'))
